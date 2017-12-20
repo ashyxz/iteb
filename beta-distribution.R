@@ -30,28 +30,18 @@ colnames(beta_dist) <- c(
 # Creates a new data structure
 beta_dist <- melt(beta_dist, x)
 
-g <- ggplot(beta_dist, aes(x, value, color=variable)) +
+beta_dist %>%
+  ggplot(aes(x, value, color=variable)) +
   geom_line() +
-  labs(title = "Beta Distribution") +
-  labs(x = "Probability", y = "Density of beta ( P(P) )")
-
-# Change the legend title
-g$labels$colour <- "Parameters"
-
-# Show the graph
-g
-
-## NULL out for the next figure
-g <- NULL
-beta_dist <- NULL
-x <- NULL
-
+  labs(
+    x = "Batting average",
+    y = "Density of beta",
+    color = "Parameters")
 
 ## Fig. 2.2 Code
 # Sample batting average est using beta distribution
 # Using params alpha = 81, beta = 219
 # We only know for now they were chosen to be realistic mean / variance for BA's
-x <- seq(0, 1, length=200)
 beta_dist <- data.frame(
   cbind(
     x,
@@ -67,27 +57,19 @@ colnames(beta_dist) <- c(
 # melt the new ds
 beta_dist <- melt(beta_dist, x)
 
-g <- ggplot(beta_dist, aes(x, value, color=variable)) +
+beta_dist %>%
+  ggplot(aes(x, value, color=variable)) +
   geom_line() +
   xlim(0.15, 0.5) + ## 'Realistic BAs'
   labs(title = "Sample Batting Average") +
-  labs(x = "Batting average", y = "Density of beta")
-
-g$labels$colour <- "Parameters"
-
-# Show the graph
-g
-
-## NULL out for the next figure
-g <- NULL
-beta_dist <- NULL
-x <- NULL
-
+  labs(
+    x = "Batting average",
+    y = "Density of beta",
+    color = "Parameters")
 
 ## Fig. 2.3 Code
 #  Updating our prior distribution
 #  after 1 hit, 1 ab --> Beta(alpha = a1 + hits, beta = b1 + misses)
-x <- seq(0,1, length=200)
 beta_dist <- data.frame(
   cbind(
     x,
@@ -106,24 +88,32 @@ colnames(beta_dist) <- c(
 
 beta_dist <- melt(beta_dist, x)
 
-g <- ggplot(beta_dist, aes(x, value, color=variable)) +
+beta_dist %>%
+  ggplot(aes(x, value, color=variable)) +
   geom_line() +
   xlim(0, 0.5) + ## 'Realistic BAs'
-  labs(title = "Sample Batting Average") +
-  labs(x = "Batting average", y = "Density of beta")
-
-g$labels$colour <- "Parameters"
-
-# Show the graph
-g
-
-## NULL out for the next figure
-g <- NULL
-beta_dist <- NULL
-x <- NULL
+  labs(
+    x = "Batting average",
+    y = "Density of beta",
+    color = "Parameters")
 
 ## Fig. 2.4 Code
-# Histogram of hits
+# Histogram of true batting average of all the players who got exactly 100 hits.
+# Shown in red is the density of Beta(81 + 100, 219 + 200) --> 100 H / 300 AB
+beta_dist <- data.frame(
+  cbind(
+    x,
+    dbeta(x, 181, 419)
+  )
+)
+
+colnames(beta_dist) <- c(
+  "x",
+  "alpha = 181, beta = 419"
+)
+
+beta_dist <- melt(beta_dist, x)
+
 num_trials <- 10e6
 
 simulations <- tibble(
@@ -134,16 +124,24 @@ simulations <- tibble(
 hit_100 <- simulations %>%
   filter(hits == 100)
 
-beta_dist %>%
-  ggplot(aes(x, value, color=variable)) +
-  geom_histogram() +
-  geom_line()
-
+hit_100 %>%
+  ggplot(aes(true_average)) +
+  geom_histogram(aes(y = ..density..),
+                 binwidth = 0.005) +
+  geom_line(data = beta_dist,
+            aes(x = x, y = value, color = "red"),
+            show.legend = FALSE) +
+  xlim(0.225, 0.375) +
+  labs(x = "Batting average of players who got 100 H / 300 AB")
 
 ## Fig. 2.5 Code
 #  True avg of players with H hits / 300 at-bats
+
 simulations %>%
   filter(hits %in% c(60, 80, 100)) %>%
   ggplot(aes(true_average, color = factor(hits))) +
   geom_density() +
-  labs(x = "True average of players with H hits / 300 at-bats", color = "H")
+  labs(
+    x = "True average of players with H hits / 300 at-bats",
+    color = "H"
+    )
