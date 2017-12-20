@@ -127,7 +127,7 @@ hit_100 <- simulations %>%
 hit_100 %>%
   ggplot(aes(true_average)) +
   geom_histogram(aes(y = ..density..),
-                 binwidth = 0.005) +
+                 binwidth = 0.005) + # 10 bins between 0.20 and 0.25
   geom_line(data = beta_dist,
             aes(x = x, y = value, color = "red"),
             show.legend = FALSE) +
