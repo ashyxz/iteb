@@ -133,11 +133,11 @@ simulations <- tibble(
 hit_100 <- simulations %>%
   filter(hits == 100)
 
-g <- ggplot(beta_dist, aes(x, value, color=variable)) +
+beta_dist %>%
+  ggplot(aes(x, value, color=variable)) +
   geom_histogram() +
   geom_line()
 
-g
 
 ## Fig. 2.5 Code
 #  True avg of players with H hits / 300 at-bats
