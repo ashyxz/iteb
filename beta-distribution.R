@@ -2,6 +2,7 @@ library(ggplot2)
 library(Lahman)
 library(dplyr)
 library(reshape2)
+theme_set(theme_bw())
 
 ## The Beta Distribution
 
