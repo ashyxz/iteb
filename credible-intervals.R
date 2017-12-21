@@ -6,8 +6,10 @@
 
 library(dplyr)
 library(tidyr)
+library(reshape2)
 library(Lahman)
 library(ggplot2)
+theme_set(theme_bw())
 
 career <- Batting %>%
   filter(AB > 0) %>%
@@ -27,11 +29,13 @@ career <- Master %>%
 alpha0 <- 101.4
 beta0 <- 287.3
 
+# Adding empirical Bayes estimated batting avg for each player
 career_eb <- career %>%
   mutate(eb_estimate = (H + alpha0) / (AB + alpha0 + beta0))
 
 ## Figure 4.1 Posterior Beta distribution for each of 7 yankee batters
 
+# Adding alpha1 and beta1 for each player
 career_eb <- career_eb %>%
   mutate(alpha1 = alpha0 + H,
          beta1 = beta0 + AB - H)
@@ -45,7 +49,8 @@ yankee_faves <- career_eb %>%
   filter(playerID %in% faves)
 
 # Setup our beta distribution (probability of probabilities given a, b)
-x <- seq(0,1, length=500)
+# Can we come up with a better way to get a beta dist?
+x <- seq(0,1, length=3000)
 beta_dist <- data.frame(
   cbind(
     x,
@@ -72,34 +77,63 @@ colnames(beta_dist) <- c(
 
 beta_dist <- melt(beta_dist, x)
 
-g <- ggplot(beta_dist, aes(x, value, color=variable)) +
+# Prior distribution
+prior_beta_dist <- data.frame(
+  cbind(
+    x,
+    dbeta(x, alpha0, beta0)
+  )
+)
+prior_beta_dist <- melt(prior_beta_dist, x)
+
+beta_dist %>%
+  ggplot(aes(x, value, color=variable)) +
   geom_line() +
   xlim(0.2, 0.35) + ## 'Realistic BAs'
-  labs(x = "Batting average", y = "Density of beta") +
-  theme_bw()
-
-g$labels$colour <- "Player"
-
-# Show the graph
-g
-
-# Add prior distribution (from ch2)
-
-
+  labs(
+    x = "Batting average",
+    y = "Density of beta",
+    color = "Player") +
+  geom_line(
+    data = prior_beta_dist,
+    aes(x, value),
+    linetype="dashed",
+    color="black")
 
 ## Figure 4.2 Posterior beta dist for Derek Jeter
 #             with a 95% credible interval highlighted.
 #             Prior is show as the dashed curve
 
-# This is gonna be a 3-4 parter
-#  1. Posterior Beta Distribution line
-#  2. Prior Beta Distribution (ch2)
-#  3. Highlighted 95% credible interval
-
 # Calculate credible interval
 yankee_1998_career <- yankee_faves %>%
   mutate(low = qbeta(0.025, alpha1, beta1),
          high = qbeta(0.975, alpha1, beta1))
+
+jeter <- yankee_1998_career %>% filter(name == "Derek Jeter")
+
+beta_dist %>%
+  filter(variable == "Derek Jeter") %>%
+  ggplot(aes(x, value)) +
+  geom_line() +
+  xlim(0.20, 0.35) +
+  labs(y="density") +
+  geom_line(
+    data = prior_beta_dist,
+    aes(x, value),
+    linetype="dashed",
+    color="black"
+  ) +
+  geom_area(
+    aes(
+      x = ifelse(x >= jeter$low & x <= jeter$high, x, 0),
+      fill = "red",
+      alpha=0.2),
+    show.legend = FALSE
+    ) +
+  geom_errorbarh(
+    aes(y=0, xmin=jeter$low, xmax=jeter$high, height=3),
+    color = "red"
+  )
 
 
 ## Figure 4.3 95% Credible intervals for each of seven Yankees
