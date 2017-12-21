@@ -32,8 +32,12 @@ career_eb <- career %>%
          beta1 = AB - H + beta0)
 
 
+#
 ## Figure 5.1: The posterior distribution for the true BA
-#               of Hank Aaron (3771 H / 12364 AB)
+#               of Hank Aaron (3771 H / 12364 AB).
+#               The BA of .3 is marked as a dashed red line,
+#               and the region where his batting average is
+#               less than .3 is shaded
 #
 hank_aaron <- career_eb %>%
   filter(name == "Hank Aaron")
